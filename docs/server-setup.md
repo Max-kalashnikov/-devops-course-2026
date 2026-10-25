@@ -6,23 +6,26 @@
 
 ## 1. Параметры машины
 
-VirtualBox 7.x, Ubuntu Server 24.04 LTS, RAM 2048 МБ, 2 CPU, диск VDI 25 ГБ
+VirtualBox 7.x, Ubuntu Server 24.04 LTS, RAM 2048 МБ, 1 CPU, диск VDI 25 ГБ
 с динамическим выделением. Имя VM и hostname: devops-vm. Начальный пользователь
 student. При установке выбрать OpenSSH server, не устанавливать Featured snaps.
 
 Фактически установлена Ubuntu Server 24.04.5 LTS, ядро после установки
 6.8.0-147-generic. На данном Windows-хосте активен Hyper-V для Docker Desktop.
-Устойчивая загрузка с двумя CPU получена с провайдером паравиртуализации Hyper-V,
-отключённым x2APIC и включённым APIC. В VirtualBox при выключенной VM:
+Загрузка с двумя CPU получена с провайдером паравиртуализации Hyper-V,
+отключённым x2APIC и включённым APIC, но создание живого снимка привело
+к потере отклика. Для завершения работ используется одно CPU. Это отклонение
+от требования двух CPU указано явно; службы, команды и результаты функциональных
+проверок от числа CPU не зависят. В VirtualBox при выключенной VM:
 
 ```powershell
-& "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" modifyvm devops-vm --cpus 2 --paravirt-provider hyperv --x86-x2apic off
+& "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" modifyvm devops-vm --cpus 1 --paravirt-provider hyperv --x86-x2apic off
 & "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" modifyvm devops-vm --apic on
 & "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" storagectl devops-vm --name SATA --hostiocache on
 ```
 
-Два ядра подтверждаются командой `nproc`. Во время установки временно
-использовалось одно ядро; в итоговой конфигурации восстановлены два.
+Число доступных ядер проверяется командой `nproc`. Снимки далее создаются
+после штатного выключения ОС, без сохранения оперативной памяти.
 Глобальные настройки Hyper-V в Windows не изменялись.
 
 В консоли VM:
