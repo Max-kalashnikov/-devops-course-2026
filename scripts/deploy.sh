@@ -10,6 +10,7 @@ case "${1:-}" in
 esac
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)" || die 'Не найден Git-репозиторий'
+if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -u "$ROOT")"; fi
 LOCAL_DIR="$ROOT/site/"
 REMOTE=devops
 REMOTE_DIR=/var/www/devops-site
