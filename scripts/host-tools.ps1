@@ -5,6 +5,15 @@ param(
 # Linux utilities for the Windows host, using the existing Docker Desktop.
 $ErrorActionPreference = 'Stop'
 $taskRepoRoot = Split-Path -Parent $PSScriptRoot
+$taskNativeBin = Join-Path $taskRepoRoot 'tools/windows/usr/bin'
+$taskBash = Join-Path $env:ProgramFiles 'Git/bin/bash.exe'
+if ((Test-Path -LiteralPath (Join-Path $taskNativeBin 'rsync.exe')) -and (Test-Path -LiteralPath $taskBash)) {
+    $env:DEVOPS_HOST_BIN=$taskNativeBin
+    $env:DEVOPS_REPO=$taskRepoRoot
+    $env:DEVOPS_COMMAND=$Command
+    & $taskBash --login ((Join-Path $taskRepoRoot 'tools/windows/run.sh') -replace '\\','/')
+    exit $LASTEXITCODE
+}
 $taskKey = Join-Path $env:USERPROFILE '.ssh/devops_vm'
 $taskKnownHosts = Join-Path $env:USERPROFILE '.ssh/known_hosts'
 $taskCertificate = Join-Path $env:USERPROFILE 'devops.crt'

@@ -40,3 +40,19 @@ Docker Desktop, без установки WSL. Из PowerShell в корне р�
 
 Перед деплоем изменения нужно зафиксировать в Git. `.env` создаётся только на VM,
 никогда не переносится с неё и исключён из Git и контекста Docker.
+
+
+## Windows без Hyper-V
+
+Для этого выполнения использовались Git for Windows и rsync из официального MSYS2.
+Установить rsync локально (пакеты сверяются по SHA256), затем запустить доставку:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/windows/install-rsync.ps1
+powershell -ExecutionPolicy Bypass -File scripts/host-tools.ps1 -Command 'bash scripts/deploy.sh --dry-run'
+powershell -ExecutionPolicy Bypass -File scripts/host-tools.ps1 -Command 'bash scripts/deploy.sh'
+```
+
+При наличии локальной rsync обёртка использует Git Bash, иначе — указанный выше
+вариант с Docker Desktop. Для Git Bash публичный сертификат находится в Windows
+профиле пользователя (~/devops.crt); алиас SSH берётся из ~/.ssh/config.
