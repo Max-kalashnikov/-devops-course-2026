@@ -6,27 +6,26 @@
 
 ## 1. Параметры машины
 
-VirtualBox 7.x, Ubuntu Server 24.04 LTS, RAM 2048 МБ, 1 CPU, диск VDI 25 ГБ
-с динамическим выделением. Имя VM и hostname: devops-vm. Начальный пользователь
-student. При установке выбрать OpenSSH server, не устанавливать Featured snaps.
+VirtualBox 7.2.22, Ubuntu Server 24.04.5 LTS, ядро 6.8.0-147-generic,
+RAM 2048 МБ, 2 CPU, динамический VDI 25 ГБ. Имя VM и hostname devops-vm.
+Начальный пользователь student; OpenSSH установлен при установке ОС.
 
-Фактически установлена Ubuntu Server 24.04.5 LTS, ядро после установки
-6.8.0-147-generic. На данном Windows-хосте активен Hyper-V для Docker Desktop.
-Загрузка с двумя CPU получена с провайдером паравиртуализации Hyper-V,
-отключённым x2APIC и включённым APIC, но создание живого снимка привело
-к потере отклика. Для завершения работ используется одно CPU. Это отклонение
-от требования двух CPU указано явно; службы, команды и результаты функциональных
-проверок от числа CPU не зависят. В VirtualBox при выключенной VM:
+На этом Windows-хосте совместная работа VirtualBox с Hyper-V и VBS вызывала
+ошибки APIC, зависания и медленную загрузку. С разрешения владельца отключены
+запуск гипервизора и целостность памяти, выполнена перезагрузка Windows.
+Проверено HypervisorPresent=False и использование VT-x в журнале VirtualBox.
+Исходные параметры защиты сохранены отдельно от репозитория для восстановления.
+Для воспроизведения состояния старого снимка после восстановления при выключенной VM:
 
 ```powershell
-& "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" modifyvm devops-vm --cpus 1 --paravirt-provider hyperv --x86-x2apic off
+& "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" modifyvm devops-vm --cpus 2 --paravirt-provider kvm --x86-x2apic on --ioapic on
 & "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" modifyvm devops-vm --apic on
 & "$env:ProgramFiles/Oracle/VirtualBox/VBoxManage.exe" storagectl devops-vm --name SATA --hostiocache on
 ```
 
-Число доступных ядер проверяется командой `nproc`. Снимки далее создаются
-после штатного выключения ОС, без сохранения оперативной памяти.
-Глобальные настройки Hyper-V в Windows не изменялись.
+Число CPU проверяется nproc. Снимки создаются после штатного выключения ОС.
+Для хостовых команд используется Git Bash и локальная rsync из MSYS2,
+поэтому Docker Desktop на Windows для выполнения работ не требуется.
 
 В консоли VM:
 
@@ -316,3 +315,20 @@ Nginx с HTTPS передаёт `/app/` в `http://127.0.0.1:5000/`.
 Актуальная установка Docker и описание обхода UFW проверены 25.10.2026:
 https://docs.docker.com/engine/install/ubuntu/
 https://docs.docker.com/engine/network/packet-filtering-firewalls/
+
+
+### Локальные имена внутри VM
+
+Для проверок HTTPS из самой VM добавлена строка `127.0.0.1 devops.local` в
+`/etc/hosts`. В Windows имя указывает на 192.168.56.101. Сертификат проверяется
+по одному имени независимо от источника запроса. При проверках без терминала
+аудит запускается как `sudo HOME=/home/devops bash /home/devops/audit.sh 7`.
+
+### HTTPS клиент Windows
+
+Kaspersky подменял сертификат для процесса curl.exe. Для воспроизводимой
+проверки использована официальная сборка curl MSYS2 под локальным именем
+devops-http.exe и обёртка curl; проверка --cacert остаётся включённой.
+Отпечаток публичного сертификата сверялся через SSH и openssl s_client.
+Браузерное предупреждение о самоподписанном сертификате подтверждено только
+для собственного адреса devops.local. Глобальная проверка HTTPS не отключалась.

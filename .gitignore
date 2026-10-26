@@ -6,3 +6,7 @@ tmp/
 output/
 vm/
 repository/
+tools/windows/usr/
+tools/windows/.PKGINFO
+tools/windows/.BUILDINFO
+tools/windows/.MTREE
